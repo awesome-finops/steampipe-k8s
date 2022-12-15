@@ -1,0 +1,93 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: steampipe
+  namespace: default
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: steampipe
+  serviceName: steampipe
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: steampipe
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+          fsGroup: 0
+          runAsUser: 9193
+          runAsGroup: 65534
+      containers:
+        - name: steampipe
+          image: turbot/steampipe:latest
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                - "/bin/sh"
+                - "-c"
+                - >
+                  chmod -R 700 /home/steampipe/.steampipe/db;
+                  steampipe plugin install aws;
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9193
+              protocol: TCP
+          command: ["/bin/sh","-c"]
+          args:
+            - steampipe service start --foreground;
+          env:
+            - name: STEAMPIPE_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: steampipe-config
+                  key: STEAMPIPE_LOG_LEVEL
+            - name: STEAMPIPE_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: steampipe-secrets
+                  key: STEAMPIPE_DATABASE_PASSWORD
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: steampipe-config
+                  key: AWS_REGION
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: steampipe-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: steampipe-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+          volumeMounts:
+            - name: data
+              mountPath: /home/steampipe/.steampipe
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: gp3
+      resources:
+        requests:
+          storage: 2Gi
+      volumeMode: Filesystem
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: gp3
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp3
+---
