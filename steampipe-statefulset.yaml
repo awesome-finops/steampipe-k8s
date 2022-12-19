@@ -24,7 +24,8 @@ spec:
           runAsGroup: 65534
       containers:
         - name: steampipe
-          image: turbot/steampipe:latest
+          image: infracreate/steampipe:v0.17.4
+          imagePullPolicy: IfNotPresent
           lifecycle:
             postStart:
               exec:
@@ -34,7 +35,6 @@ spec:
                 - >
                   chmod -R 700 /home/steampipe/.steampipe/db;
                   steampipe plugin install aws;
-          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9193
               protocol: TCP
