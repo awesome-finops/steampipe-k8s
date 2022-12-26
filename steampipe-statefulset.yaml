@@ -17,6 +17,9 @@ spec:
       labels:
         app: steampipe
     spec:
+      nodeSelector:
+        eks.amazonaws.com/compute-class: Scale-Out
+        kubernetes.io/arch: arm64
       terminationGracePeriodSeconds: 30
       securityContext:
           fsGroup: 0
