@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: steampipe
-  namespace: default
+  namespace: finops-infra
 spec:
   updateStrategy:
     type: RollingUpdate
