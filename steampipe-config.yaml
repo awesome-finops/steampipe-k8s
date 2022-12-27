@@ -13,6 +13,9 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: steampipe-secrets
+  namespace: finops-infra
+  labels:
+    app: steampipe
 type: Opaque
 data:
   STEAMPIPE_DATABASE_PASSWORD: <SET_PASSORD_WITH_BASE64_HERE>
