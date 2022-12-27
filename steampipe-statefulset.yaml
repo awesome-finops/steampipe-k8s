@@ -89,5 +89,5 @@ metadata:
   name: steampipe-storage
 provisioner: kubernetes.io/aws-ebs
 parameters:
-  type: gp3
+  type: gp2
 ---
